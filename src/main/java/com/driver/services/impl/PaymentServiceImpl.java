@@ -18,20 +18,32 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Override
     public Payment pay(Integer reservationId, int amountSent, String mode) throws Exception {
-        Reservation reservation=reservationRepository2.findById(reservationId).get();
-        Payment payment=new Payment();
-        payment.setReservation(reservation);
-        payment.setPaymentMode(PaymentMode.valueOf(mode.toUpperCase()));
-        reservation.setPayment(payment);
+        //Attempt a payment of amountSent for reservationId using the given mode ("cASh", "card", or "upi")
+        //If the amountSent is less than bill, throw "Insufficient Amount" exception, otherwise update payment attributes
+        //If the mode contains a string other than "cash", "card", or "upi" (any character in uppercase or lowercase), throw "Payment mode not detected" exception.
+        //Note that the reservationId always exists
 
-        //bill calculation
-        int noOfHours=reservation.getNumberOfHours();
-        int bill=reservation.getSpot().getPricePerHour()*noOfHours;
+        Reservation reservation = reservationRepository2.findById(reservationId).get();
+        Payment payment = new Payment();
 
-        //Check payment
-        if(amountSent<bill){
+        // amount check and mode check
+        int bill = reservation.getSpot().getPricePerHour() * reservation.getNumberOfHours();
+
+        if(amountSent < bill){
             throw new Exception("Insufficient Amount");
         }
+        if (!mode.toUpperCase().equals("CASH") && !mode.toUpperCase().equals("CARD") && !mode.toUpperCase().equals("UPI") ) {
+            throw new Exception("Payment mode not detected");
+        }
+
+        PaymentMode paymentMode = PaymentMode.valueOf(mode.toUpperCase());
+        payment.setPaymentMode(paymentMode);
+        payment.setPaymentCompleted(true);
+        payment.setReservation(reservation);
+        reservation.setPayment(payment);
+
+
+        reservationRepository2.save(reservation);
         return payment;
     }
 }
