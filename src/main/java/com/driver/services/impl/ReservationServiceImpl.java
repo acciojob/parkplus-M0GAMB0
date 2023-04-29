@@ -9,6 +9,7 @@ import com.driver.services.ReservationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -23,6 +24,37 @@ public class ReservationServiceImpl implements ReservationService {
     ParkingLotRepository parkingLotRepository3;
     @Override
     public Reservation reserveSpot(Integer userId, Integer parkingLotId, Integer timeInHours, Integer numberOfWheels) throws Exception {
-
+        try{
+            User user = userRepository3.findById(userId).get();
+            Reservation reservation = new Reservation();
+            reservation.setNoOfHours(timeInHours);
+            reservation.setUser(user);
+            ParkingLot parkingLot = parkingLotRepository3.findById(parkingLotId).get();
+            List<Spot> spots = parkingLot.getSpotList();
+            Spot minRateSpot = null;
+            int minRate = Integer.MAX_VALUE;
+            SpotType spt;
+            if (numberOfWheels == 2) {
+                spt = SpotType.TWO_WHEELER;
+            } else if (numberOfWheels == 4) {
+                spt = SpotType.FOUR_WHEELER;
+            } else {
+                spt = SpotType.OTHERS;
+            }
+            for (Spot spot : spots) {
+                if (spot.getSpotType() == spt && spot.getPricePerHour() < minRate) {
+                    minRate = spot.getPricePerHour();
+                    minRateSpot = spot;
+                }
+            }
+            assert minRateSpot != null;
+            minRateSpot.getReservationList().add(reservation);
+            minRateSpot.setOccupied(true);
+            reservationRepository3.save(reservation);
+            return reservation;
+        }
+        catch(Exception e){
+            throw new Exception("Cannot make reservation");
+        }
     }
 }
