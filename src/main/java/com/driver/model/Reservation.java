@@ -38,7 +38,7 @@ public class Reservation {
         this.id = id;
     }
 
-    public int getNoOfHours() {
+    public int getNumberOfHours() {
         return numberOfHours;
     }
 

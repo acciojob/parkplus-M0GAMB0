@@ -25,7 +25,7 @@ public class PaymentServiceImpl implements PaymentService {
         reservation.setPayment(payment);
 
         //bill calculation
-        int noOfHours=reservation.getNoOfHours();
+        int noOfHours=reservation.getNumberOfHours();
         int bill=reservation.getSpot().getPricePerHour()*noOfHours;
 
         //Check payment
